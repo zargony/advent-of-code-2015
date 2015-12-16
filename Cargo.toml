@@ -8,3 +8,6 @@ description = "Solutions to the Advent of Code puzzles. http://adventofcode.com/
 
 [[bin]]
 name = "day_01"
+
+[[bin]]
+name = "day_02"
