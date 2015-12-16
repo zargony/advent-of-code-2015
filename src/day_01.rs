@@ -33,8 +33,8 @@ impl<'a> Instructions<'a> {
         Floors { floor: 0, iter: self.steps.chars() }
     }
 
-    pub fn final_floor(&self) -> i32 {
-        self.floors().last().unwrap()
+    pub fn final_floor(&self) -> Option<i32> {
+        self.floors().last()
     }
 
     pub fn basement_step(&self) -> Option<usize> {
@@ -44,7 +44,7 @@ impl<'a> Instructions<'a> {
 
 fn main() {
     let instructions = Instructions::new(include_str!("day_01.txt"));
-    println!("Final floor: {}", instructions.final_floor());
+    println!("Final floor: {}", instructions.final_floor().unwrap());
     println!("Basement step: {}", instructions.basement_step().unwrap());
 }
 
@@ -54,15 +54,15 @@ mod tests {
 
     #[test]
     fn final_floor() {
-        assert_eq!(Instructions::new("(())"   ).final_floor(),  0);
-        assert_eq!(Instructions::new("()()"   ).final_floor(),  0);
-        assert_eq!(Instructions::new("((("    ).final_floor(),  3);
-        assert_eq!(Instructions::new("(()(()(").final_floor(),  3);
-        assert_eq!(Instructions::new("))(((((").final_floor(),  3);
-        assert_eq!(Instructions::new("())"    ).final_floor(), -1);
-        assert_eq!(Instructions::new("))("    ).final_floor(), -1);
-        assert_eq!(Instructions::new(")))"    ).final_floor(), -3);
-        assert_eq!(Instructions::new(")())())").final_floor(), -3);
+        assert_eq!(Instructions::new("(())"   ).final_floor(), Some( 0));
+        assert_eq!(Instructions::new("()()"   ).final_floor(), Some( 0));
+        assert_eq!(Instructions::new("((("    ).final_floor(), Some( 3));
+        assert_eq!(Instructions::new("(()(()(").final_floor(), Some( 3));
+        assert_eq!(Instructions::new("))(((((").final_floor(), Some( 3));
+        assert_eq!(Instructions::new("())"    ).final_floor(), Some(-1));
+        assert_eq!(Instructions::new("))("    ).final_floor(), Some(-1));
+        assert_eq!(Instructions::new(")))"    ).final_floor(), Some(-3));
+        assert_eq!(Instructions::new(")())())").final_floor(), Some(-3));
     }
 
     #[test]
