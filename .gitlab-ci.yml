@@ -1,11 +1,16 @@
+stages:
+  - test
+  - run
+
 test:
+  stage: test
   image: scorpil/rust
   script:
     - cargo build --verbose
     - cargo test --verbose
 
 run:
-  stage: deploy
+  stage: run
   image: scorpil/rust
   script:
     - cargo build --release
