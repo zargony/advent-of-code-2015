@@ -13,39 +13,39 @@ impl<'a> Iterator for Floors<'a> {
             match ch {
                 '(' => self.floor += 1,
                 ')' => self.floor -= 1,
-                _ => (),
+                _ => panic!("invalid character"),
             }
             self.floor
         })
     }
 }
 
-pub struct Instructions<'a> {
+pub struct Directions<'a> {
     steps: &'a str,
 }
 
-impl<'a> Instructions<'a> {
-    pub fn new(steps: &str) -> Instructions {
-        Instructions { steps: steps }
+impl<'a> Directions<'a> {
+    fn new(steps: &str) -> Directions {
+        Directions { steps: steps }
     }
 
-    pub fn floors(&self) -> Floors {
+    fn floors(&self) -> Floors {
         Floors { floor: 0, iter: self.steps.chars() }
     }
 
-    pub fn final_floor(&self) -> Option<i32> {
+    fn final_floor(&self) -> Option<i32> {
         self.floors().last()
     }
 
-    pub fn basement_step(&self) -> Option<usize> {
-        self.floors().position(|floor| floor < 0).map(|x| x+1)
+    fn basement_step(&self) -> Option<usize> {
+        self.floors().position(|floor| floor < 0).map(|x| x + 1)
     }
 }
 
 fn main() {
-    let instructions = Instructions::new(include_str!("day01.txt"));
-    println!("Final floor: {}", instructions.final_floor().unwrap());
-    println!("Basement step: {}", instructions.basement_step().unwrap());
+    let directions = Directions::new(include_str!("day01.txt"));
+    println!("Final floor: {}", directions.final_floor().unwrap());
+    println!("Basement step: {}", directions.basement_step().unwrap());
 }
 
 #[cfg(test)]
@@ -54,20 +54,20 @@ mod tests {
 
     #[test]
     fn final_floor() {
-        assert_eq!(Instructions::new("(())"   ).final_floor(), Some( 0));
-        assert_eq!(Instructions::new("()()"   ).final_floor(), Some( 0));
-        assert_eq!(Instructions::new("((("    ).final_floor(), Some( 3));
-        assert_eq!(Instructions::new("(()(()(").final_floor(), Some( 3));
-        assert_eq!(Instructions::new("))(((((").final_floor(), Some( 3));
-        assert_eq!(Instructions::new("())"    ).final_floor(), Some(-1));
-        assert_eq!(Instructions::new("))("    ).final_floor(), Some(-1));
-        assert_eq!(Instructions::new(")))"    ).final_floor(), Some(-3));
-        assert_eq!(Instructions::new(")())())").final_floor(), Some(-3));
+        assert_eq!(Directions::new("(())"   ).final_floor().unwrap(),  0);
+        assert_eq!(Directions::new("()()"   ).final_floor().unwrap(),  0);
+        assert_eq!(Directions::new("((("    ).final_floor().unwrap(),  3);
+        assert_eq!(Directions::new("(()(()(").final_floor().unwrap(),  3);
+        assert_eq!(Directions::new("))(((((").final_floor().unwrap(),  3);
+        assert_eq!(Directions::new("())"    ).final_floor().unwrap(), -1);
+        assert_eq!(Directions::new("))("    ).final_floor().unwrap(), -1);
+        assert_eq!(Directions::new(")))"    ).final_floor().unwrap(), -3);
+        assert_eq!(Directions::new(")())())").final_floor().unwrap(), -3);
     }
 
     #[test]
     fn basement_step() {
-        assert_eq!(Instructions::new(")"    ).basement_step(), Some(1));
-        assert_eq!(Instructions::new("()())").basement_step(), Some(5));
+        assert_eq!(Directions::new(")"    ).basement_step().unwrap(), 1);
+        assert_eq!(Directions::new("()())").basement_step().unwrap(), 5);
     }
 }

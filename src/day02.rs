@@ -7,28 +7,28 @@ pub struct Present {
 }
 
 impl Present {
-    pub fn new(sizespec: &str) -> Present {
+    fn new(sizespec: &str) -> Present {
         let mut sizes = sizespec.split('x').map(|s| u32::from_str(s).unwrap());
         Present { length: sizes.next().unwrap(), width: sizes.next().unwrap(), height: sizes.next().unwrap() }
     }
 
-    pub fn sizes(&self) -> [u32; 3] {
+    fn sizes(&self) -> [u32; 3] {
         [self.length, self.width, self.height]
     }
 
-    pub fn sides(&self) -> [u32; 3] {
+    fn sides(&self) -> [u32; 3] {
         [self.length * self.width, self.width  * self.height, self.height * self.length]
     }
 
-    pub fn smallest_side(&self) -> u32 {
+    fn smallest_side(&self) -> u32 {
         *self.sides().iter().min().unwrap()
     }
 
-    pub fn paper_size(&self) -> u32 {
+    fn paper_size(&self) -> u32 {
         self.sides().iter().fold(0, |sum, side| sum + side) * 2 + self.smallest_side()
     }
 
-    pub fn ribbon_length(&self) -> u32 {
+    fn ribbon_length(&self) -> u32 {
         let mut sizes = self.sizes();
         sizes.sort();
         2 * sizes[0] + 2 * sizes[1] + sizes.iter().fold(1, |prod, size| prod * size)
@@ -40,15 +40,15 @@ pub struct Presents {
 }
 
 impl Presents {
-    pub fn new(sizespecs: &str) -> Presents {
+    fn new(sizespecs: &str) -> Presents {
         Presents { presents: sizespecs.lines().map(|line| Present::new(line)).collect() }
     }
 
-    pub fn paper_size(&self) -> u32 {
+    fn paper_size(&self) -> u32 {
         self.presents.iter().map(|p| p.paper_size()).fold(0, |sum, size| sum + size)
     }
 
-    pub fn ribbon_length(&self) -> u32 {
+    fn ribbon_length(&self) -> u32 {
         self.presents.iter().map(|p| p.ribbon_length()).fold(0, |sum, size| sum + size)
     }
 }
