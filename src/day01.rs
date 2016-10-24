@@ -43,7 +43,7 @@ impl<'a> Instructions<'a> {
 }
 
 fn main() {
-    let instructions = Instructions::new(include_str!("day_01.txt"));
+    let instructions = Instructions::new(include_str!("day01.txt"));
     println!("Final floor: {}", instructions.final_floor().unwrap());
     println!("Basement step: {}", instructions.basement_step().unwrap());
 }

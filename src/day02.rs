@@ -54,7 +54,7 @@ impl Presents {
 }
 
 fn main() {
-    let presents = Presents::new(include_str!("day_02.txt"));
+    let presents = Presents::new(include_str!("day02.txt"));
     println!("Total paper size: {}", presents.paper_size() );
     println!("Total ribbon length: {}", presents.ribbon_length() );
 }

@@ -1,16 +1,16 @@
 [package]
-name = "Advent of Code"
+name = "Advent of Code 2015"
 version = "0.1.0"
 authors = ["Andreas Neuhaus <zargony@zargony.com>"]
-description = "Solutions to the Advent of Code puzzles. http://adventofcode.com/"
+description = "Solutions to the Advent of Code 2015 puzzles"
 
 [dependencies]
 
 [[bin]]
-name = "day_01"
+name = "day01"
 
 [[bin]]
-name = "day_02"
+name = "day02"
 
 [[bin]]
-name = "day_03"
+name = "day03"
