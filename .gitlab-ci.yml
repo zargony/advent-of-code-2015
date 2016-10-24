@@ -1,0 +1,12 @@
+test:
+  image: scorpil/rust
+  script:
+    - cargo build --verbose
+    - cargo test --verbose
+
+run:
+  stage: deploy
+  image: scorpil/rust
+  script:
+    - cargo build --release
+    - for f in src/day*.rs; do cargo run --release --bin `basename $f .rs`; done
