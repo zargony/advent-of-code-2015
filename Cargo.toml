@@ -5,6 +5,7 @@ authors = ["Andreas Neuhaus <zargony@zargony.com>"]
 description = "Solutions to the Advent of Code 2015 puzzles"
 
 [dependencies]
+nom = "1"
 onig = "1"
 rust-crypto = "0.2"
 
@@ -22,3 +23,6 @@ name = "day04"
 
 [[bin]]
 name = "day05"
+
+[[bin]]
+name = "day06"
