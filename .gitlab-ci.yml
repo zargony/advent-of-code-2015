@@ -2,6 +2,10 @@ stages:
   - test
   - run
 
+before_script:
+  - apt-get update
+  - apt-get install -y --no-install-recommends pkg-config libonig-dev
+
 test:
   stage: test
   image: scorpil/rust
