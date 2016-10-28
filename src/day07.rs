@@ -149,11 +149,20 @@ impl<'a> Circuit<'a> {
             None => panic!("unknown wire '{}'", wire),
         }
     }
+
+    fn set(&mut self, wire: &'a str, signal: u16) {
+        self.wires.insert(wire, Expression::Value(Value::Signal(signal)));
+        self.cache.borrow_mut().clear();
+    }
 }
 
 fn main() {
-    let circ = Circuit::new(include_str!("day07.txt"));
-    println!("Ultimate signal to wire a: {}", circ.eval("a"));
+    let mut circ = Circuit::new(include_str!("day07.txt"));
+    let a1 = circ.eval("a");
+    println!("Ultimate signal to wire a: {}", a1);
+    circ.set("b", a1);
+    let a2 = circ.eval("a");
+    println!("Ultimate signal to wire a if b is overridden with {}: {}", a1, a2)
 }
 
 #[cfg(test)]
@@ -198,6 +207,8 @@ mod tests {
         assert_eq!(circ.eval_expression(&Expression::Or(Value::Wire("x"), Value::Signal(14))), 127);
         assert_eq!(circ.eval_expression(&Expression::LShift(Value::Wire("x"), 2)), 492);
         assert_eq!(circ.eval_expression(&Expression::RShift(Value::Wire("x"), 2)), 30);
+        assert_eq!(circ.eval_expression(&Expression::Value(Value::Signal(123))), 123);
+        assert_eq!(circ.eval_expression(&Expression::Value(Value::Wire("x"))), 123);
     }
 
     #[test]
@@ -211,5 +222,13 @@ mod tests {
         assert_eq!(circ.eval("g"), 114);
         assert_eq!(circ.eval("h"), 65412);
         assert_eq!(circ.eval("i"), 65079);
+    }
+
+    #[test]
+    fn overrriding() {
+        let mut circ = Circuit::new("123 -> x");
+        assert_eq!(circ.eval_expression(&Expression::Value(Value::Wire("x"))), 123);
+        circ.set("x", 456);
+        assert_eq!(circ.eval_expression(&Expression::Value(Value::Wire("x"))), 456);
     }
 }
