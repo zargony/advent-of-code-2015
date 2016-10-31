@@ -50,7 +50,7 @@ impl<T: Iterator<Item=char>> IteratorSequenceExt<T> for T {
 
 fn main() {
     let input = "1321131112";
-    let result = input.chars()
+    let result40 = input.chars()
                     .sequence().sequence().sequence().sequence().sequence()
                     .sequence().sequence().sequence().sequence().sequence()
                     .sequence().sequence().sequence().sequence().sequence()
@@ -60,7 +60,12 @@ fn main() {
                     .sequence().sequence().sequence().sequence().sequence()
                     .sequence().sequence().sequence().sequence().sequence()
                     .collect::<String>();
-    println!("Length of 40 times sequenced '1321131112': {}", result.len());
+    println!("Length of 40 times sequenced '1321131112': {}", result40.len());
+    let result50 = result40.chars()
+                    .sequence().sequence().sequence().sequence().sequence()
+                    .sequence().sequence().sequence().sequence().sequence()
+                    .collect::<String>();
+    println!("Length of 50 times sequenced '1321131112': {}", result50.len());
 }
 
 #[cfg(test)]
