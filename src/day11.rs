@@ -59,6 +59,8 @@ fn main() {
     let mut password = b"hepxcrrq".to_owned();
     next_password(&mut password);
     println!("Next password: {}", str::from_utf8(&password[..]).unwrap());
+    next_password(&mut password);
+    println!("Next password: {}", str::from_utf8(&password[..]).unwrap());
 }
 
 #[cfg(test)]
