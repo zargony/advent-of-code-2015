@@ -89,6 +89,21 @@ impl<'a> JsonObject<'a> {
             _ => 0,
         }
     }
+
+    fn sum_nonred_numbers(&self) -> isize {
+        match *self {
+            JsonObject::Number(n) => n,
+            JsonObject::Array(ref a) => a.iter().map(|e| e.sum_nonred_numbers()).sum(),
+            JsonObject::Hash(ref h) => {
+                if h.iter().any(|&(_, ref e)| e == &JsonObject::String("red")) {
+                    0
+                } else {
+                    h.iter().map(|&(_, ref e)| e.sum_nonred_numbers()).sum()
+                }
+            },
+            _ => 0,
+        }
+    }
 }
 
 pub trait StrJsonExt {
@@ -103,7 +118,9 @@ impl<T: AsRef<str>> StrJsonExt for T {
 
 fn main() {
     let input = include_str!("day12.txt");
-    println!("Sum of all numbers: {}", input.to_json().sum_numbers());
+    let json = input.to_json();
+    println!("Sum of all numbers: {}", json.sum_numbers());
+    println!("Sum of all non-red numbers: {}", json.sum_nonred_numbers());
 }
 
 #[cfg(test)]
@@ -129,5 +146,13 @@ mod tests {
         assert_eq!(r#"[-1,{"a":1}]"#.to_json().sum_numbers(), 0);
         assert_eq!(r#"[]"#.to_json().sum_numbers(), 0);
         assert_eq!(r#"{}"#.to_json().sum_numbers(), 0);
+    }
+
+    #[test]
+    fn summing_nonred_numbers() {
+        assert_eq!(r#"[1,2,3]"#.to_json().sum_nonred_numbers(), 6);
+        assert_eq!(r#"[1,{"c":"red","b":2},3]"#.to_json().sum_nonred_numbers(), 4);
+        assert_eq!(r#"{"d":"red","e":[1,2,3,4],"f":5}"#.to_json().sum_nonred_numbers(), 0);
+        assert_eq!(r#"[1,"red",5]"#.to_json().sum_nonred_numbers(), 6);
     }
 }
