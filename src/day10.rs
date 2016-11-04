@@ -50,13 +50,15 @@ impl<T: Iterator<Item=char>> IteratorSequenceExt<T> for T {
 
 fn main() {
     let input = "1321131112";
-    let result40 = input.chars()
+    let result30 = input.chars()
                     .sequence().sequence().sequence().sequence().sequence()
                     .sequence().sequence().sequence().sequence().sequence()
                     .sequence().sequence().sequence().sequence().sequence()
                     .sequence().sequence().sequence().sequence().sequence()
                     .sequence().sequence().sequence().sequence().sequence()
                     .sequence().sequence().sequence().sequence().sequence()
+                    .collect::<String>();
+    let result40 = result30.chars()
                     .sequence().sequence().sequence().sequence().sequence()
                     .sequence().sequence().sequence().sequence().sequence()
                     .collect::<String>();
