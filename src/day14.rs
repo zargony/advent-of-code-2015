@@ -43,15 +43,6 @@ named!(pub reindeer<Reindeer>,
     )
 );
 
-named!(pub reindeers<Vec<Reindeer> >,
-    complete!(
-        separated_list!(
-            eol,
-            reindeer
-        )
-    )
-);
-
 impl<'a> Reindeer<'a> {
     fn distance_after_time(&self, t: usize) -> usize {
         let cycle_time = self.fly_time + self.rest_time;
@@ -64,10 +55,31 @@ impl<'a> Reindeer<'a> {
     }
 }
 
+#[derive(Debug)]
+pub struct Race<'a>(Vec<Reindeer<'a>>);
+
+named!(pub race<Vec<Reindeer> >,
+    complete!(
+        separated_list!(
+            eol,
+            reindeer
+        )
+    )
+);
+
+impl<'a> Race<'a> {
+    fn new(input: &str) -> Race {
+        Race(race(input.as_bytes()).unwrap().1)
+    }
+
+    fn max_distance_after_time(&self, t: usize) -> usize {
+        self.0.iter().map(|r| r.distance_after_time(t)).max().unwrap()
+    }
+}
+
 fn main() {
-    let reindeers = reindeers(include_str!("day14.txt").as_bytes()).unwrap().1;
-    let win_distance = reindeers.iter().map(|r| r.distance_after_time(2503)).max().unwrap();
-    println!("Distance of winning reindeer after 2503s: {}", win_distance);
+    let race = Race::new(include_str!("day14.txt"));
+    println!("Distance of winning reindeer after 2503s: {}", race.max_distance_after_time(2503));
 }
 
 #[cfg(test)]
