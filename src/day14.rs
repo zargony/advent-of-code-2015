@@ -79,11 +79,30 @@ impl<'a> Race<'a> {
     fn max_distance_after_time(&self, t: usize) -> (&Reindeer, usize) {
         self.distance_after_time(t).into_iter().max_by_key(|&(_, dist)| dist).unwrap()
     }
+
+    fn points_after_time(&self, t: usize) -> Vec<(&Reindeer, usize)> {
+        if t == 0 {
+            self.0.iter().map(|r| (r, 0)).collect()
+        } else {
+            let dists = self.distance_after_time(t);
+            let max_dist = dists.iter().max_by_key(|&&(_, dist)| dist).unwrap().1;
+            self.points_after_time(t - 1).iter().enumerate().map(|(i, &(r, mut pts))| {
+                assert_eq!(dists[i].0, r);
+                if dists[i].1 == max_dist { pts += 1 }
+                (r, pts)
+            }).collect()
+        }
+    }
+
+    fn max_points_after_time(&self, t: usize) -> (&Reindeer, usize) {
+        self.points_after_time(t).into_iter().max_by_key(|&(_, pts)| pts).unwrap()
+    }
 }
 
 fn main() {
     let race = Race::new(include_str!("day14.txt"));
     println!("Distance of winning reindeer after 2503s: {}", race.max_distance_after_time(2503).1);
+    println!("Points of winning reindeer after 2503s: {}", race.max_points_after_time(2503).1);
 }
 
 #[cfg(test)]
@@ -132,5 +151,7 @@ mod tests {
         let dancer = &race.0[1];
         assert_eq!(race.distance_after_time(1000), [(comet, 1120), (dancer, 1056)]);
         assert_eq!(race.max_distance_after_time(1000), (comet, 1120));
+        assert_eq!(race.points_after_time(1000), [(comet, 312), (dancer, 689)]);
+        assert_eq!(race.max_points_after_time(1000), (dancer, 689));
     }
 }
