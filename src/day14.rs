@@ -55,7 +55,7 @@ impl<'a> Reindeer<'a> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Race<'a>(Vec<Reindeer<'a>>);
 
 named!(pub race<Vec<Reindeer> >,
@@ -72,14 +72,18 @@ impl<'a> Race<'a> {
         Race(race(input.as_bytes()).unwrap().1)
     }
 
-    fn max_distance_after_time(&self, t: usize) -> usize {
-        self.0.iter().map(|r| r.distance_after_time(t)).max().unwrap()
+    fn distance_after_time(&self, t: usize) -> Vec<(&Reindeer, usize)> {
+        self.0.iter().map(|r| (r, r.distance_after_time(t))).collect()
+    }
+
+    fn max_distance_after_time(&self, t: usize) -> (&Reindeer, usize) {
+        self.distance_after_time(t).into_iter().max_by_key(|&(_, dist)| dist).unwrap()
     }
 }
 
 fn main() {
     let race = Race::new(include_str!("day14.txt"));
-    println!("Distance of winning reindeer after 2503s: {}", race.max_distance_after_time(2503));
+    println!("Distance of winning reindeer after 2503s: {}", race.max_distance_after_time(2503).1);
 }
 
 #[cfg(test)]
@@ -110,5 +114,23 @@ mod tests {
         assert_eq!(dancer.distance_after_time(174), 192);
         assert_eq!(comet.distance_after_time(1000), 1120);
         assert_eq!(dancer.distance_after_time(1000), 1056);
+    }
+
+    #[test]
+    fn race_parsing() {
+        let race = Race::new("Comet can fly 14 km/s for 10 seconds, but then must rest for 127 seconds.\nDancer can fly 16 km/s for 11 seconds, but then must rest for 162 seconds.");
+        assert_eq!(race, Race(vec![
+            Reindeer { name: "Comet", speed: 14, fly_time: 10, rest_time: 127 },
+            Reindeer { name: "Dancer", speed: 16, fly_time: 11, rest_time: 162 },
+        ]));
+    }
+
+    #[test]
+    fn racing() {
+        let race = Race::new("Comet can fly 14 km/s for 10 seconds, but then must rest for 127 seconds.\nDancer can fly 16 km/s for 11 seconds, but then must rest for 162 seconds.");
+        let comet = &race.0[0];
+        let dancer = &race.0[1];
+        assert_eq!(race.distance_after_time(1000), [(comet, 1120), (dancer, 1056)]);
+        assert_eq!(race.max_distance_after_time(1000), (comet, 1120));
     }
 }
