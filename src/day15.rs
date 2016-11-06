@@ -64,12 +64,13 @@ named!(pub ingredients<Vec<Ingredient> >,
 pub struct IngredientCombinations<'a> {
     ingredients: &'a [Ingredient<'a>],
     total: usize,
+    calories: Option<usize>,
     amounts: Vec<usize>,
 }
 
 impl<'a> IngredientCombinations<'a> {
-    fn new(ingredients: &'a [Ingredient], total: usize) -> IngredientCombinations<'a> {
-        IngredientCombinations { ingredients: ingredients, total: total, amounts: vec![0; ingredients.len()] }
+    fn new(ingredients: &'a [Ingredient], total: usize, calories: Option<usize>) -> IngredientCombinations<'a> {
+        IngredientCombinations { ingredients: ingredients, total: total, calories: calories, amounts: vec![0; ingredients.len()] }
     }
 
     fn next(&mut self) -> Option<(usize, Vec<(&Ingredient, usize)>)> {
@@ -88,12 +89,14 @@ impl<'a> IngredientCombinations<'a> {
                 let durability = self.ingredients.iter().zip(self.amounts.iter()).fold(0, |sum, (ing, &amn)| sum + amn as isize * ing.durability);
                 let flavor = self.ingredients.iter().zip(self.amounts.iter()).fold(0, |sum, (ing, &amn)| sum + amn as isize * ing.flavor);
                 let texture = self.ingredients.iter().zip(self.amounts.iter()).fold(0, |sum, (ing, &amn)| sum + amn as isize * ing.texture);
-                let _calories = self.ingredients.iter().zip(self.amounts.iter()).fold(0, |sum, (ing, &amn)| sum + amn as isize * ing.calories);
+                let calories = self.ingredients.iter().zip(self.amounts.iter()).fold(0, |sum, (ing, &amn)| sum + amn as isize * ing.calories);
                 let score = if capacity > 0 { capacity as usize } else { 0 } *
                             if durability > 0 { durability as usize } else { 0 } *
                             if flavor > 0 { flavor as usize } else { 0 } *
                             if texture > 0 { texture as usize } else { 0 };
-                return Some((score, self.ingredients.iter().zip(self.amounts.clone()).collect()));
+                if self.calories == None || self.calories == Some(calories as usize) {
+                    return Some((score, self.ingredients.iter().zip(self.amounts.clone()).collect()));
+                }
             }
         }
         None
@@ -102,12 +105,19 @@ impl<'a> IngredientCombinations<'a> {
 
 fn main() {
     let ingredients = ingredients(include_str!("day15.txt").as_bytes()).unwrap().1;
-    let mut combination = IngredientCombinations::new(&ingredients, 100);
+    let mut combination = IngredientCombinations::new(&ingredients, 100, None);
     let mut max_score = 0;
     while let Some((score, _)) = combination.next() {
         if score > max_score { max_score = score }
     }
     println!("Max cookie score: {}", max_score);
+
+    let mut combination = IngredientCombinations::new(&ingredients, 100, Some(500));
+    let mut max_score = 0;
+    while let Some((score, _)) = combination.next() {
+        if score > max_score { max_score = score }
+    }
+    println!("Max cookie score with exactly 500 calories: {}", max_score);
 }
 
 #[cfg(test)]
@@ -126,7 +136,7 @@ mod tests {
         let ingredients = ingredients(b"Butterscotch: capacity -1, durability -2, flavor 6, texture 3, calories 8\nCinnamon: capacity 2, durability 3, flavor -2, texture -1, calories 3").unwrap().1;
         let butterscotch = &ingredients[0];
         let cinnamon = &ingredients[1];
-        let mut combination = IngredientCombinations::new(&ingredients, 3);
+        let mut combination = IngredientCombinations::new(&ingredients, 3, None);
         assert_eq!(combination.next(), Some((0, vec![(butterscotch, 3), (cinnamon, 0)])));
         assert_eq!(combination.next(), Some((0, vec![(butterscotch, 2), (cinnamon, 1)])));
         assert_eq!(combination.next(), Some((24, vec![(butterscotch, 1), (cinnamon, 2)])));
