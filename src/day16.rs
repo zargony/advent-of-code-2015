@@ -63,22 +63,41 @@ fn match_criteria(compounds: &HashMap<&str, usize>, criteria: &[(&str, usize)]) 
     true
 }
 
+fn match_criteria_real(compounds: &HashMap<&str, usize>, criteria: &[(&str, usize)]) -> bool {
+    for &(comp, count) in criteria {
+        if compounds.contains_key(comp) && match comp {
+            "cats" | "trees" => compounds.get(comp) <= Some(&count),
+            "pomeranians" | "goldfish" => compounds.get(comp) >= Some(&count),
+            _ => compounds.get(comp) != Some(&count),
+        } {
+            return false;
+        }
+    }
+    true
+}
+
 fn main() {
     let aunts = aunts(include_str!("day16.txt").as_bytes()).unwrap().1;
-    for aunt in aunts {
-        if match_criteria(&aunt.compounds, &[
-            ("children", 3),
-            ("cats", 7),
-            ("samoyeds", 2),
-            ("pomeranians", 3),
-            ("akitas", 0),
-            ("vizslas", 0),
-            ("goldfish", 5),
-            ("trees", 3),
-            ("cars", 2),
-            ("perfumes", 1),
-        ]) {
+    let criteria = [
+        ("children", 3),
+        ("cats", 7),
+        ("samoyeds", 2),
+        ("pomeranians", 3),
+        ("akitas", 0),
+        ("vizslas", 0),
+        ("goldfish", 5),
+        ("trees", 3),
+        ("cars", 2),
+        ("perfumes", 1),
+    ];
+    for aunt in &aunts {
+        if match_criteria(&aunt.compounds, &criteria) {
             println!("Found matching aunt: {}", aunt.name);
+        }
+    }
+    for aunt in &aunts {
+        if match_criteria_real(&aunt.compounds, &criteria) {
+            println!("Found matching real aunt: {}", aunt.name);
         }
     }
 }
