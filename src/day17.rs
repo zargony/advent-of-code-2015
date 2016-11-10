@@ -1,4 +1,5 @@
 use std::slice;
+use std::collections::HashMap;
 use std::str::FromStr;
 
 pub fn parse(input: &str) -> Vec<usize> {
@@ -68,9 +69,24 @@ impl<'a> Iterator for PermutationsWithSum<'a> {
     }
 }
 
+pub fn count_smallest<I: Iterator<Item=Vec<usize>>>(iter: I) -> (usize, usize) {
+    let mut sizes_count: HashMap<usize, usize> = HashMap::new();
+    for items in iter {
+        let size = items.len();
+        let count = sizes_count.entry(size).or_insert(0);
+        *count += 1;
+    }
+    let smallest = *sizes_count.keys().min().unwrap();
+    let smallest_count = *sizes_count.get(&smallest).unwrap();
+    (smallest, smallest_count)
+}
+
 fn main() {
     let containers = parse(include_str!("day17.txt"));
-    println!("Number of 150 liter combinations: {}", PermutationsWithSum::new(&containers, 150).count());
+    let num_150l_containers = PermutationsWithSum::new(&containers, 150).count();
+    println!("Number of 150 liter combinations: {}", num_150l_containers);
+    let (size_smallest_combination, num_smallest_combinations) = count_smallest(PermutationsWithSum::new(&containers, 150));
+    println!("Number of smallest ({}) combination of containers: {}", size_smallest_combination, num_smallest_combinations);
 }
 
 #[cfg(test)]
@@ -145,5 +161,12 @@ mod tests {
         assert_eq!(it.next(), Some(vec![15, 10]));
         assert_eq!(it.next(), Some(vec![15, 5, 5]));
         assert_eq!(it.next(), None);
+    }
+
+    #[test]
+    fn counting_smallest() {
+        let containers = parse("20\n15\n10\n5\n5");
+        let it = PermutationsWithSum::new(&containers, 25);
+        assert_eq!(count_smallest(it), (2, 3));
     }
 }
