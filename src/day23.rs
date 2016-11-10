@@ -119,6 +119,10 @@ fn main() {
     let mut vm = Vm::from(include_str!("day23.txt"));
     vm.run();
     println!("Value of register B after running program: {}", vm.b);
+    let mut vm = Vm::from(include_str!("day23.txt"));
+    vm.a = 1;
+    vm.run();
+    println!("Value of register B after running program if register A starts as 1: {}", vm.b);
 }
 
 #[cfg(test)]
