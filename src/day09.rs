@@ -3,11 +3,11 @@ extern crate nom;
 
 mod permute;
 
-use std::collections::HashMap;
 use std::str::{self, FromStr};
 use nom::{alphanumeric, digit, space, eol};
+use permute::PermutationExt;
 
-named!(pub route<(&str, &str, usize)>,
+named!(pub segment<(&str, &str, usize)>,
     chain!(
         from: map_res!(alphanumeric, str::from_utf8) ~
         space ~ tag!("to") ~ space ~
@@ -18,68 +18,69 @@ named!(pub route<(&str, &str, usize)>,
     )
 );
 
-named!(pub routes<Vec<(&str, &str, usize)> >,
+named!(pub segments<Vec<(&str, &str, usize)> >,
     complete!(
         separated_list!(
             eol,
-            route
+            segment
         )
     )
 );
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Routes<'a>(HashMap<&'a str, HashMap<&'a str, usize>>);
+pub struct Router<'a> {
+    segments: Vec<(&'a str, &'a str, usize)>,
+    locations: Vec<&'a str>,
+}
 
-impl<'a> From<&'a str> for Routes<'a> {
-    fn from(input: &str) -> Routes {
-        let mut map: HashMap<&str, HashMap<&str, usize>> = HashMap::new();
-        for (from, to, dist) in routes(input.as_bytes()).unwrap().1 {
-            map.entry(from).or_insert(HashMap::new()).insert(to, dist);
+impl<'a> From<&'a str> for Router<'a> {
+    fn from(input: &str) -> Router {
+        let segs = segments(input.as_bytes()).unwrap().1;
+        let mut locs = Vec::new();
+        for &(from, to, _) in &segs {
+            if !locs.contains(&from) { locs.push(&from); }
+            if !locs.contains(&to) { locs.push(&to); }
         }
-        Routes(map)
+        Router { segments: segs, locations: locs }
     }
 }
 
-impl<'a> Routes<'a> {
-    fn each_path<F: FnMut(&[&str], usize)>(&self, mut f: F) {
-        fn each<F: FnMut(&[&str], usize)>(routes: &HashMap<&str, HashMap<&str, usize>>, path: &[&str], dist: usize, f: &mut F) {
-            match routes.get(path.last().unwrap()) {
-                Some(tos) => for (to, d) in tos {
-                    if !path.contains(to) {
-                        let mut new_path = path.to_owned();
-                        new_path.push(to);
-                        each(routes, &new_path, dist+d, f);
-                    }
-                },
-                None => f(path, dist),
+impl<'a> Router<'a> {
+    fn distance_between(&self, from: &str, to: &str) -> Option<usize> {
+        self.segments.iter().find(|&&(loc1, loc2, _)| {
+            (loc1 == from && loc2 == to) || (loc2 == from && loc1 == to)
+        }).map(|&(_, _, dist)| dist)
+    }
+
+    fn distance(&self, route: &[&str]) -> Option<usize> {
+        let mut dist = 0;
+        for i in 0..route.len() - 1 {
+            match self.distance_between(route[i], route[i+1]) {
+                Some(d) => dist += d,
+                None => return None,
             }
         }
-        for from in self.0.keys() {
-            each(&self.0, &[from], 0, &mut f);
-        }
+        Some(dist)
     }
 
-    fn max_path_len(&self) -> usize {
-        let mut maxlen = 0;
-        self.each_path(|path, _|
-            if path.len() > maxlen { maxlen = path.len() }
-        );
-        maxlen
+    fn routes(&self) -> permute::Permutations<&'a str> {
+        self.locations.permutations()
     }
 
-    fn shortest_full_path_dist(&self) -> usize {
-        let maxlen = self.max_path_len();
-        let mut mindist = usize::max_value();
-        self.each_path(|path, dist| {
-            if path.len() == maxlen && dist < mindist { mindist = dist }
-        });
-        mindist
+    fn shortest_route(&self) -> (Vec<&str>, usize) {
+        self.routes().map(|route| {
+            let dist = self.distance(&route).unwrap();
+            (route, dist)
+        }).min_by_key(|&(_, dist)| {
+            dist
+        }).unwrap()
     }
 }
 
 fn main() {
-    let routes = Routes::from(include_str!("day09.txt"));
-    // XXX
+    let router = Router::from(include_str!("day09.txt"));
+    let (_, dist) = router.shortest_route();
+    println!("Distance of shortest route: {}", dist);
 }
 
 #[cfg(test)]
@@ -88,41 +89,44 @@ mod test {
 
     #[test]
     fn parsing() {
-        assert_eq!(routes(b"London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141").unwrap(),
+        assert_eq!(segments(b"London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141").unwrap(),
             (&b""[..], vec![("London", "Dublin", 464), ("London", "Belfast", 518), ("Dublin", "Belfast", 141)]));
     }
 
     #[test]
     fn parsing_complete() {
-        let routes = Routes::from(include_str!("day09.txt"));
-        assert_eq!(routes.0.len(), 7);
+        let router = Router::from(include_str!("day09.txt"));
+        assert_eq!(router.segments.len(), 28);
+        assert_eq!(router.locations.len(), 8);
     }
 
     #[test]
-    fn permuting() {
-        let routes = Routes::from("London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141");
-        let mut paths: Vec<(Vec<String>, usize)> = Vec::new();
-        routes.each_path(|path, dist| {
-            paths.push((path.iter().map(|s| String::from(*s)).collect(), dist));
-        });
-        // assert_eq!(paths.len(), 6);
-        // assert!(paths.contains(&(vec!["Dublin".to_owned(), "London".to_owned(), "Belfast".to_owned()], 982)));
-        // assert!(paths.contains(&(vec!["London".to_owned(), "Dublin".to_owned(), "Belfast".to_owned()], 605)));
-        // assert!(paths.contains(&(vec!["London".to_owned(), "Belfast".to_owned(), "Dublin".to_owned()], 659)));
-        // assert!(paths.contains(&(vec!["Dublin".to_owned(), "Belfast".to_owned(), "London".to_owned()], 659)));
-        // assert!(paths.contains(&(vec!["Belfast".to_owned(), "Dublin".to_owned(), "London".to_owned()], 605)));
-        // assert!(paths.contains(&(vec!["Belfast".to_owned(), "London".to_owned(), "Dublin".to_owned()], 982)));
+    fn permuting_routes() {
+        let router = Router::from("London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141");
+        let mut routes = router.routes();
+        assert_eq!(routes.next(), Some(vec!["London", "Dublin", "Belfast"]));
+        assert_eq!(routes.next(), Some(vec!["Dublin", "London", "Belfast"]));
+        assert_eq!(routes.next(), Some(vec!["Belfast", "London", "Dublin"]));
+        assert_eq!(routes.next(), Some(vec!["London", "Belfast", "Dublin"]));
+        assert_eq!(routes.next(), Some(vec!["Dublin", "Belfast", "London"]));
+        assert_eq!(routes.next(), Some(vec!["Belfast", "Dublin", "London"]));
+        assert_eq!(routes.next(), None);
     }
 
     #[test]
-    fn longest_path() {
-        let routes = Routes::from("London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141");
-        assert_eq!(routes.max_path_len(), 3);
+    fn calculating_distance() {
+        let router = Router::from("London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141");
+        assert_eq!(router.distance(&["London", "Dublin", "Belfast"]), Some(605));
+        assert_eq!(router.distance(&["Dublin", "London", "Belfast"]), Some(982));
+        assert_eq!(router.distance(&["Belfast", "London", "Dublin"]), Some(982));
+        assert_eq!(router.distance(&["London", "Belfast", "Dublin"]), Some(659));
+        assert_eq!(router.distance(&["Dublin", "Belfast", "London"]), Some(659));
+        assert_eq!(router.distance(&["Belfast", "Dublin", "London"]), Some(605));
     }
 
     #[test]
-    fn shortest_full_distance() {
-        let routes = Routes::from("London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141");
-        assert_eq!(routes.shortest_full_path_dist(), 605);
+    fn finding_shortest_route() {
+        let router = Router::from("London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141");
+        assert_eq!(router.shortest_route(), (vec!["London", "Dublin", "Belfast"], 605));
     }
 }
