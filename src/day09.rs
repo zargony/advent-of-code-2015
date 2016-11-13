@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate nom;
 
+mod permute;
+
 use std::collections::HashMap;
 use std::str::{self, FromStr};
 use nom::{alphanumeric, digit, space, eol};
