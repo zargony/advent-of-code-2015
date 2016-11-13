@@ -1,11 +1,11 @@
-pub struct Permutations<'a, T: 'a> {
-    data: &'a mut [T],
+pub struct Permutations<T> {
+    data: Vec<T>,
     n: usize,
     c: Vec<usize>,
 }
 
-impl<'a, T> Permutations<'a, T> {
-    fn new(data: &mut [T]) -> Permutations<T> {
+impl<T: Clone> Permutations<T> {
+    pub fn new(data: Vec<T>) -> Permutations<T> {
         let len = data.len();
         Permutations {
             data: data,
@@ -15,11 +15,11 @@ impl<'a, T> Permutations<'a, T> {
     }
 }
 
-impl<'a, T> Permutations<'a, T> {
-    fn next_permutation(&mut self) -> Option<&[T]> {
+impl<T> Permutations<T> {
+    pub fn next_permutation(&mut self) -> Option<&[T]> {
         if self.n == !0 {
             self.n = 0;
-            Some(self.data)
+            Some(&self.data)
         } else {
             while self.n < self.data.len() - 1 {
                 if self.c[self.n] <= self.n {
@@ -27,7 +27,7 @@ impl<'a, T> Permutations<'a, T> {
                     self.data.swap(j, self.n + 1);
                     self.c[self.n] += 1;
                     self.n = 0;
-                    return Some(self.data);
+                    return Some(&self.data);
                 } else {
                     self.c[self.n] = 0;
                     self.n += 1;
@@ -38,7 +38,7 @@ impl<'a, T> Permutations<'a, T> {
     }
 }
 
-impl<'a, T: Clone> Iterator for Permutations<'a, T> {
+impl<T: Clone> Iterator for Permutations<T> {
     type Item = Vec<T>;
 
     fn next(&mut self) -> Option<Vec<T>> {
@@ -47,12 +47,18 @@ impl<'a, T: Clone> Iterator for Permutations<'a, T> {
 }
 
 pub trait PermutationExt<T> {
-    fn permutations(&mut self) -> Permutations<T>;
+    fn permutations(&self) -> Permutations<T>;
 }
 
-impl<T> PermutationExt<T> for [T] {
-    fn permutations(&mut self) -> Permutations<T> {
-        Permutations::new(self)
+impl<T: Clone> PermutationExt<T> for Vec<T> {
+    fn permutations(&self) -> Permutations<T> {
+        Permutations::new(self.clone())
+    }
+}
+
+impl<T: Clone> PermutationExt<T> for [T] {
+    fn permutations(&self) -> Permutations<T> {
+        Permutations::new(self.to_owned())
     }
 }
 
@@ -62,7 +68,7 @@ mod tests {
 
     #[test]
     fn permute() {
-        let mut data = [1, 2, 3];
+        let data = [1, 2, 3];
         let mut permutations = data.permutations();
         assert_eq!(permutations.next(), Some(vec![1, 2, 3]));
         assert_eq!(permutations.next(), Some(vec![2, 1, 3]));
