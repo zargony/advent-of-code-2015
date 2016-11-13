@@ -4,7 +4,7 @@ pub struct Permutations<'a, T: 'a> {
     c: Vec<usize>,
 }
 
-impl<'a, T: Clone> Permutations<'a, T> {
+impl<'a, T> Permutations<'a, T> {
     fn new(data: &mut [T]) -> Permutations<T> {
         let len = data.len();
         Permutations {
