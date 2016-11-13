@@ -46,6 +46,16 @@ impl<'a, T: Clone> Iterator for Permutations<'a, T> {
     }
 }
 
+pub trait PermutationExt<T> {
+    fn permutations(&mut self) -> Permutations<T>;
+}
+
+impl<T> PermutationExt<T> for [T] {
+    fn permutations(&mut self) -> Permutations<T> {
+        Permutations::new(self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -53,7 +63,7 @@ mod tests {
     #[test]
     fn permute() {
         let mut data = [1, 2, 3];
-        let mut permutations = Permutations::new(&mut data);
+        let mut permutations = data.permutations();
         assert_eq!(permutations.next(), Some(vec![1, 2, 3]));
         assert_eq!(permutations.next(), Some(vec![2, 1, 3]));
         assert_eq!(permutations.next(), Some(vec![3, 1, 2]));
