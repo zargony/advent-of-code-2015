@@ -75,12 +75,23 @@ impl<'a> Router<'a> {
             dist
         }).unwrap()
     }
+
+    fn longest_route(&self) -> (Vec<&str>, usize) {
+        self.routes().map(|route| {
+            let dist = self.distance(&route).unwrap();
+            (route, dist)
+        }).max_by_key(|&(_, dist)| {
+            dist
+        }).unwrap()
+    }
 }
 
 fn main() {
     let router = Router::from(include_str!("day09.txt"));
     let (_, dist) = router.shortest_route();
     println!("Distance of shortest route: {}", dist);
+    let (_, dist) = router.longest_route();
+    println!("Distance of longest route: {}", dist);
 }
 
 #[cfg(test)]
@@ -128,5 +139,11 @@ mod test {
     fn finding_shortest_route() {
         let router = Router::from("London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141");
         assert_eq!(router.shortest_route(), (vec!["London", "Dublin", "Belfast"], 605));
+    }
+
+    #[test]
+    fn finding_longest_route() {
+        let router = Router::from("London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141");
+        assert_eq!(router.longest_route(), (vec!["Belfast", "London", "Dublin"], 982));
     }
 }
