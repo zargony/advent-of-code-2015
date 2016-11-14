@@ -22,7 +22,7 @@ named!(lights<Vec<Vec<bool> > >,
     )
 );
 
-#[derive(PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Grid(Vec<Vec<bool> >);
 
 impl<'a> From<&'a str> for Grid {
@@ -87,11 +87,30 @@ impl Grid {
     fn animate_n(self, n: usize) -> Grid {
         (0..n).fold(self, |g, _| g.animate())
     }
+
+    fn xanimate(self) -> Grid {
+        let mut grid = self;
+        *grid.0.first_mut().unwrap().first_mut().unwrap() = true;
+        *grid.0.first_mut().unwrap().last_mut().unwrap() = true;
+        *grid.0.last_mut().unwrap().first_mut().unwrap() = true;
+        *grid.0.last_mut().unwrap().last_mut().unwrap() = true;
+        grid = grid.animate();
+        *grid.0.first_mut().unwrap().first_mut().unwrap() = true;
+        *grid.0.first_mut().unwrap().last_mut().unwrap() = true;
+        *grid.0.last_mut().unwrap().first_mut().unwrap() = true;
+        *grid.0.last_mut().unwrap().last_mut().unwrap() = true;
+        grid
+    }
+
+    fn xanimate_n(self, n: usize) -> Grid {
+        (0..n).fold(self, |g, _| g.xanimate())
+    }
 }
 
 fn main() {
     let grid = Grid::from(include_str!("day18.txt"));
-    println!("Lit lights after 100 animation steps: {}", grid.animate_n(100).count());
+    println!("Lit lights after 100 animation steps: {}", grid.clone().animate_n(100).count());
+    println!("Lit lights after 100 animation steps, with broken corner lights: {}", grid.xanimate_n(100).count());
 }
 
 #[cfg(test)]
@@ -109,18 +128,53 @@ mod tests {
         let grid = Grid::from(".#.#.#\n...##.\n#....#\n..#...\n#.#..#\n####..");
         assert_eq!(grid.count(), 15);
         let grid = grid.animate();
+        assert_eq!(grid, Grid::from("..##..\n..##.#\n...##.\n......\n#.....\n#.##.."));
         assert_eq!(grid.count(), 11);
         let grid = grid.animate();
+        assert_eq!(grid, Grid::from("..###.\n......\n..###.\n......\n.#....\n.#...."));
         assert_eq!(grid.count(), 8);
         let grid = grid.animate();
+        assert_eq!(grid, Grid::from("...#..\n......\n...#..\n..##..\n......\n......"));
         assert_eq!(grid.count(), 4);
         let grid = grid.animate();
+        assert_eq!(grid, Grid::from("......\n......\n..##..\n..##..\n......\n......"));
         assert_eq!(grid.count(), 4);
     }
 
     #[test]
     fn multi_animating() {
         let grid = Grid::from(".#.#.#\n...##.\n#....#\n..#...\n#.#..#\n####..");
-        assert_eq!(grid.animate_n(4), Grid::from("......\n......\n..##..\n..##..\n......\n......"));
+        let grid = grid.animate_n(4);
+        assert_eq!(grid, Grid::from("......\n......\n..##..\n..##..\n......\n......"));
+        assert_eq!(grid.count(), 4);
+    }
+
+    #[test]
+    fn xanimating() {
+        let grid = Grid::from("##.#.#\n...##.\n#....#\n..#...\n#.#..#\n####.#");
+        assert_eq!(grid.count(), 17);
+        let grid = grid.xanimate();
+        assert_eq!(grid, Grid::from("#.##.#\n####.#\n...##.\n......\n#...#.\n#.####"));
+        assert_eq!(grid.count(), 18);
+        let grid = grid.xanimate();
+        assert_eq!(grid, Grid::from("#..#.#\n#....#\n.#.##.\n...##.\n.#..##\n##.###"));
+        assert_eq!(grid.count(), 18);
+        let grid = grid.xanimate();
+        assert_eq!(grid, Grid::from("#...##\n####.#\n..##.#\n......\n##....\n####.#"));
+        assert_eq!(grid.count(), 18);
+        let grid = grid.xanimate();
+        assert_eq!(grid, Grid::from("#.####\n#....#\n...#..\n.##...\n#.....\n#.#..#"));
+        assert_eq!(grid.count(), 14);
+        let grid = grid.xanimate();
+        assert_eq!(grid, Grid::from("##.###\n.##..#\n.##...\n.##...\n#.#...\n##...#"));
+        assert_eq!(grid.count(), 17);
+    }
+
+    #[test]
+    fn multi_xanimating() {
+        let grid = Grid::from("##.#.#\n...##.\n#....#\n..#...\n#.#..#\n####.#");
+        let grid = grid.xanimate_n(5);
+        assert_eq!(grid, Grid::from("##.###\n.##..#\n.##...\n.##...\n#.#...\n##...#"));
+        assert_eq!(grid.count(), 17);
     }
 }
