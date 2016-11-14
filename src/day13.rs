@@ -80,6 +80,10 @@ fn main() {
     let guest_list = GuestList::from(include_str!("day13.txt"));
     let (_, score) = guest_list.optimal_seating_plan();
     println!("Total change in happiness for optimal seating plan: {}", score);
+    let mut guest_list = GuestList::from(include_str!("day13.txt"));
+    guest_list.people.push("Me");
+    let (_, score) = guest_list.optimal_seating_plan();
+    println!("Total change in happiness for optimal seating plan with neutral person: {}", score);
 }
 
 #[cfg(test)]
