@@ -98,9 +98,11 @@ fn main() {
 mod test {
     use super::*;
 
+    const INPUT: &'static str = "London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141";
+
     #[test]
     fn parsing() {
-        assert_eq!(segments(b"London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141").unwrap(),
+        assert_eq!(segments(INPUT.as_bytes()).unwrap(),
             (&b""[..], vec![("London", "Dublin", 464), ("London", "Belfast", 518), ("Dublin", "Belfast", 141)]));
     }
 
@@ -113,7 +115,7 @@ mod test {
 
     #[test]
     fn permuting_routes() {
-        let router = Router::from("London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141");
+        let router = Router::from(INPUT);
         let mut routes = router.routes();
         assert_eq!(routes.next(), Some(vec!["London", "Dublin", "Belfast"]));
         assert_eq!(routes.next(), Some(vec!["Dublin", "London", "Belfast"]));
@@ -126,7 +128,7 @@ mod test {
 
     #[test]
     fn calculating_distance() {
-        let router = Router::from("London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141");
+        let router = Router::from(INPUT);
         assert_eq!(router.distance(&["London", "Dublin", "Belfast"]), Some(605));
         assert_eq!(router.distance(&["Dublin", "London", "Belfast"]), Some(982));
         assert_eq!(router.distance(&["Belfast", "London", "Dublin"]), Some(982));
@@ -137,13 +139,13 @@ mod test {
 
     #[test]
     fn finding_shortest_route() {
-        let router = Router::from("London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141");
+        let router = Router::from(INPUT);
         assert_eq!(router.shortest_route(), (vec!["London", "Dublin", "Belfast"], 605));
     }
 
     #[test]
     fn finding_longest_route() {
-        let router = Router::from("London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141");
+        let router = Router::from(INPUT);
         assert_eq!(router.longest_route(), (vec!["Belfast", "London", "Dublin"], 982));
     }
 }
