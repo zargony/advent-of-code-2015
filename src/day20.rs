@@ -4,6 +4,12 @@ pub fn sum_of_divisors(n: usize) -> usize {
     )
 }
 
+pub fn special_sum_of_divisors(n: usize) -> usize {
+    (1 .. n / 2 + 1).fold(n, |sum, x|
+        sum + if n % x == 0 && n <= x * 50 { x } else { 0 }
+    )
+}
+
 pub fn number_with_sum_of_divisor(mut n: usize, sum: usize) -> usize {
     loop {
         if sum_of_divisors(n) >= sum {
@@ -13,12 +19,24 @@ pub fn number_with_sum_of_divisor(mut n: usize, sum: usize) -> usize {
     }
 }
 
+pub fn number_with_special_sum_of_divisor(mut n: usize, sum: usize) -> usize {
+    loop {
+        if special_sum_of_divisors(n) >= sum {
+            return n;
+        }
+        n += 1;
+    }
+}
+
 fn main() {
     let min_presents = 36_000_000;
+    // We're cheat with start numbers here  to prevent long runtime (CI timeout)
     println!("Lowest house number that gets at least {} presents: {}",
         min_presents,
-        // Cheat with start number to prevent long runtime (CI timeout)
-        number_with_sum_of_divisor(831000, min_presents / 10));
+        number_with_sum_of_divisor(831_000, min_presents / 10));
+    println!("Lowest house number that gets at least {} presents (special rules): {}",
+        min_presents,
+        number_with_special_sum_of_divisor(884_000, min_presents / 11));
 }
 
 #[cfg(test)]
