@@ -138,8 +138,7 @@ impl Fighter for Monster {
     fn mut_health(&mut self) -> &mut usize { &mut self.hp }
 }
 
-fn main() {
-    let mut min_price = usize::max_value();
+fn simulate_fights<F: FnMut(&Player, &Monster)>(mut f: F) {
     for weapon in WEAPONS.iter() {
         for armor in vec![None].into_iter().chain(ARMORS.iter().map(|item| Some(item))) {
             for ring1 in vec![None].into_iter().chain(RINGS.iter().map(|item| Some(item))) {
@@ -154,15 +153,30 @@ fn main() {
                         };
                         let mut monster = Monster { hp: 103, damage: 9, armor: 2 };
                         player.fight(&mut monster);
-                        if !player.is_dead() && monster.is_dead() && player.value() < min_price {
-                            min_price = player.value();
-                        }
+                        f(&player, &monster);
                     }
                 }
             }
         }
     }
+}
+
+fn main() {
+    let mut min_price = usize::max_value();
+    simulate_fights(|player, monster| {
+        if !player.is_dead() && monster.is_dead() && player.value() < min_price {
+            min_price = player.value();
+        }
+    });
     println!("Least amount of gold to spend and win: {}", min_price);
+
+    let mut max_price = 0;
+    simulate_fights(|player, monster| {
+        if player.is_dead() && !monster.is_dead() && player.value() > max_price {
+            max_price = player.value();
+        }
+    });
+    println!("Most amount of gold to spend and lose: {}", max_price);
 }
 
 #[cfg(test)]
