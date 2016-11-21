@@ -101,7 +101,7 @@ impl<'a> Player<'a> {
         self.weapon.cost +
             self.armor.map_or(0, |item| item.cost) +
             self.ring1.map_or(0, |item| item.cost) +
-            self.ring1.map_or(0, |item| item.cost)
+            self.ring2.map_or(0, |item| item.cost)
     }
 }
 
@@ -110,14 +110,14 @@ impl<'a> Fighter for Player<'a> {
         self.weapon.damage +
             self.armor.map_or(0, |item| item.damage) +
             self.ring1.map_or(0, |item| item.damage) +
-            self.ring1.map_or(0, |item| item.damage)
+            self.ring2.map_or(0, |item| item.damage)
     }
 
     fn armor(&self) -> usize {
         self.weapon.armor +
             self.armor.map_or(0, |item| item.armor) +
             self.ring1.map_or(0, |item| item.armor) +
-            self.ring1.map_or(0, |item| item.armor)
+            self.ring2.map_or(0, |item| item.armor)
     }
 
     fn health(&self) -> usize { self.hp }
