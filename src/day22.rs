@@ -178,10 +178,15 @@ impl<'a> fmt::Display for Monster<'a> {
     }
 }
 
-fn simulate_fights(player: &Player, monster: &Monster, min_mp: &mut isize, mp: isize) {
+fn simulate_fights(player: &Player, monster: &Monster, min_mp: &mut isize, mp: isize, hard: bool) {
     for spell in SPELLS.iter() {
         let mut player = player.clone();
         let mut monster = monster.clone();
+
+        if hard {
+            player.suffer(1);
+            if player.is_dead() { continue; }
+        }
 
         player.apply_effects();
         monster.apply_effects();
@@ -204,7 +209,7 @@ fn simulate_fights(player: &Player, monster: &Monster, min_mp: &mut isize, mp: i
         if player.is_dead() { continue; }
         if monster.is_dead() { if mp + mp_used < *min_mp { *min_mp = mp + mp_used }; continue; }
 
-        simulate_fights(&player, &monster, min_mp, mp + mp_used);
+        simulate_fights(&player, &monster, min_mp, mp + mp_used, hard);
     }
 }
 
@@ -212,8 +217,11 @@ fn main() {
     let player = Player::new(50, 500);
     let monster = Monster::new("Boss", 58, 9);
     let mut min_mp = isize::max_value();
-    simulate_fights(&player, &monster, &mut min_mp, 0);
+    simulate_fights(&player, &monster, &mut min_mp, 0, false);
     println!("Least amount of mana to spend and win: {}", min_mp);
+    let mut min_mp = isize::max_value();
+    simulate_fights(&player, &monster, &mut min_mp, 0, true);
+    println!("Least amount of mana to spend and win (hard): {}", min_mp);
 }
 
 #[cfg(test)]
